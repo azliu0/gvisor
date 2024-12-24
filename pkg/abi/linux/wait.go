@@ -37,6 +37,7 @@ const (
 	P_ALL  = 0x0
 	P_PID  = 0x1
 	P_PGID = 0x2
+	P_PIDFD = 0x3
 )
 
 // WaitStatus represents a thread status, as returned by the wait* family of

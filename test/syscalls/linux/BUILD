@@ -1675,6 +1675,20 @@ cc_binary(
 )
 
 cc_binary(
+    name = "pidfd_test",
+    testonly = 1,
+    srcs = ["pidfd.cc"],
+    linkstatic = 1,
+    malloc = "//test/util:errno_safe_allocator",
+    deps = select_gtest() + [
+        "//test/util:test_main",
+        "//test/util:test_util",
+        "//test/util:thread_util",
+        "//test/util:time_util",
+    ],
+)
+
+cc_binary(
     name = "ping_socket_test",
     testonly = 1,
     srcs = ["ping_socket.cc"],

@@ -21,6 +21,7 @@ import (
 	"gvisor.dev/gvisor/pkg/hostarch"
 	"gvisor.dev/gvisor/pkg/marshal/primitive"
 	"gvisor.dev/gvisor/pkg/sentry/arch"
+	"gvisor.dev/gvisor/pkg/sentry/fsimpl/pidfd"
 	"gvisor.dev/gvisor/pkg/sentry/kernel"
 	"gvisor.dev/gvisor/pkg/sentry/kernel/sched"
 	"gvisor.dev/gvisor/pkg/sentry/loader"
@@ -381,6 +382,23 @@ func Waitid(t *kernel.Task, sysno uintptr, args arch.SyscallArguments) (uintptr,
 		wopts.SpecificTID = kernel.ThreadID(id)
 	case linux.P_PGID:
 		wopts.SpecificPGID = kernel.ProcessGroupID(id)
+	case linux.P_PIDFD:
+		file := t.GetFile(int32(id))
+		if file == nil {
+			return 0, nil, linuxerr.EINVAL
+		}
+		defer file.DecRef(t)
+
+		pfd, ok := file.Impl().(*pidfd.ProcessFileDescription)
+		if !ok {
+			return 0, nil, linuxerr.EINVAL
+		}
+
+		if pfd.Nonblocking() && !pfd.TaskExited() {
+			return 0, nil, linuxerr.EAGAIN
+		}
+
+		wopts.SpecificTID = pfd.PID()
 	default:
 		return 0, nil, linuxerr.EINVAL
 	}

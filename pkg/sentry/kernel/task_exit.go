@@ -602,6 +602,9 @@ func (*runExitNotify) execute(t *Task) taskRunState {
 	defer t.tg.pidns.owner.mu.Unlock()
 	t.advanceExitStateLocked(TaskExitInitiated, TaskExitZombie)
 	t.tg.liveTasks--
+
+	t.pidfdQueue.Notify(waiter.ReadableEvents)
+
 	// Check if this completes a sibling's execve.
 	if t.tg.execing != nil && t.tg.liveTasks == 1 {
 		// execing blocks the addition of new tasks to the thread group, so

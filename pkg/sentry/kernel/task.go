@@ -186,6 +186,9 @@ type Task struct {
 	// The task only broadcast a notification on signal delivery.
 	signalQueue waiter.Queue
 
+	// pidfdQueue is a set of registered waiters for pidfd-related events.
+	pidfdQueue waiter.Queue
+
 	// If groupStopPending is true, the task should participate in a group
 	// stop in the interrupt path.
 	//
@@ -876,4 +879,14 @@ func (t *Task) ResetKcov() {
 		t.kcov.OnTaskExit()
 		t.kcov = nil
 	}
+}
+
+// PidfdEventRegister registers a waiter entry for pidfd events.
+func (t *Task) PidfdEventRegister(e *waiter.Entry) {
+	t.pidfdQueue.EventRegister(e)
+}
+
+// PidfdEventUnregister unregisters a waiter entry for pidfd events.
+func (t *Task) PidfdEventUnregister(e *waiter.Entry) {
+	t.pidfdQueue.EventUnregister(e)
 }
